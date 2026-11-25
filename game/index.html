@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="icon" href="data:,">
+<title>RAMEN RUSH — 3D Cooking Game</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { width: 100%; height: 100%; overflow: hidden; background: #241708; font-family: 'Segoe UI', Arial, sans-serif; }
+  #app { position: fixed; inset: 0; }
+  #app canvas { display: block; width: 100%; height: 100%; }
+  .hud { position: fixed; left: 0; right: 0; pointer-events: none; z-index: 5; color: #fff; }
+  #topbar {
+    top: 0; height: 52px; display: flex; align-items: center; gap: 18px;
+    padding: 0 18px; background: linear-gradient(#2b1d12, rgba(43,29,18,0.85));
+    border-bottom: 3px solid #d94f3d;
+  }
+  #topbar .title { font-size: 26px; font-weight: 900; color: #ffd27a; letter-spacing: 1px; white-space: nowrap; }
+  #topbar .title small { color: #ff8a7a; font-size: 13px; letter-spacing: 2px; }
+  #topbar .day { font-size: 18px; font-weight: 800; color: #ffe9a8; white-space: nowrap; }
+  #progress-wrap { flex: 1; height: 12px; background: #4a3421; border-radius: 6px; overflow: hidden; min-width: 80px; }
+  #hud-progress { height: 100%; width: 0%; background: linear-gradient(90deg, #7ddb8a, #4f9e57); }
+  #topbar .stat { font-size: 17px; font-weight: 800; white-space: nowrap; }
+  #hud-combo { color: #ffb066; }
+  #hud-money { color: #ffd27a; }
+  #hud-hearts { color: #ff6b81; letter-spacing: 2px; }
+  #topbar .best { margin-left: auto; color: #c9b18a; font-size: 14px; }
+  #rush-banner {
+    top: 60px; left: 50%; transform: translateX(-50%); display: none;
+    background: #d94f3d; color: #fff; font-weight: 900; font-size: 20px;
+    padding: 8px 26px; border-radius: 24px; box-shadow: 0 4px 18px rgba(0,0,0,0.5);
+    letter-spacing: 1px; white-space: nowrap;
+  }
+  #toast {
+    top: 112px; left: 50%; transform: translateX(-50%);
+    background: rgba(20,14,8,0.92); color: #ffe9a8; font-size: 16px; font-weight: 700;
+    padding: 8px 18px; border-radius: 20px; opacity: 0; transition: opacity 0.3s; white-space: nowrap;
+  }
+  #order-card {
+    left: 16px; bottom: 16px; width: 320px; background: rgba(20,14,8,0.92);
+    border: 2px solid #6b4423; border-radius: 12px; padding: 12px 14px;
+  }
+  #order-card .oc-title { font-size: 20px; font-weight: 900; color: #ffd27a; }
+  #order-card .oc-price { color: #7ddb8a; font-size: 17px; }
+  #order-card .oc-sub { font-size: 14px; color: #e8dcc8; margin: 4px 0 8px; }
+  #order-card .oc-chips { display: flex; flex-wrap: wrap; gap: 6px; }
+  #order-card .chip {
+    background: #4a3421; color: #ffd27a; border: 1px solid #8a6a3a;
+    padding: 4px 10px; border-radius: 14px; font-size: 13px; font-weight: 700;
+  }
+  #order-card .chip.done { background: #2e6b34; color: #fff; border-color: #7ddb8a; }
+  #plate-state {
+    left: 50%; bottom: 16px; transform: translateX(-50%);
+    background: rgba(20,14,8,0.9); padding: 8px 16px; border-radius: 18px;
+    font-size: 15px; font-weight: 700; color: #ffe9a8; white-space: nowrap;
+  }
+  #plate-state.ready { color: #7ddb8a; border: 2px solid #2e6b34; }
+  #plate-state.burnt { color: #ff8a7a; border: 2px solid #7a1f2b; }
+  #hints {
+    right: 16px; bottom: 16px; font-size: 12px; color: rgba(255,240,210,0.85);
+    text-align: right; line-height: 1.5; text-shadow: 0 1px 3px #000;
+  }
+  #title-screen {
+    position: fixed; inset: 0; z-index: 10; display: flex; flex-direction: column;
+    align-items: center; justify-content: center; gap: 14px;
+    background: rgba(20,12,6,0.55); color: #fff; pointer-events: none;
+  }
+  #title-screen h1 { font-size: 84px; font-weight: 900; color: #ffd27a; text-shadow: 0 4px 0 #7a1f2b, 0 8px 24px rgba(0,0,0,0.7); letter-spacing: 2px; }
+  #title-screen p { font-size: 20px; color: #ffe9a8; text-shadow: 0 2px 6px #000; }
+  #title-screen .keys { font-size: 15px; color: #e8dcc8; }
+</style>
+</head>
+<body>
+<div id="app"></div>
+
+<div class="hud" id="topbar">
+  <div class="title">RAMEN RUSH <small>3D</small></div>
+  <div class="day" id="hud-day">DAY 1</div>
+  <div id="progress-wrap"><div id="hud-progress"></div></div>
+  <div class="stat">Score <span id="hud-score">0</span></div>
+  <div class="stat" id="hud-combo">COMBO x0</div>
+  <div class="stat" id="hud-money">¥0</div>
+  <div class="stat" id="hud-hearts">♥♥♥</div>
+  <div class="best">Best 0</div>
+</div>
+<div class="hud" id="rush-banner">RUSH HOUR! — ORDERS ARE COMING FASTER</div>
+<div class="hud" id="toast"></div>
+<div class="hud" id="order-card"></div>
+<div class="hud plate-state" id="plate-state">PLATE: empty — grab ingredients (1-8)</div>
+<div class="hud" id="hints">WASD / arrows move &nbsp;·&nbsp; E interact &nbsp;·&nbsp; 1-8 take ingredient<br>Space serve &nbsp;·&nbsp; C camera &nbsp;·&nbsp; P pause &nbsp;·&nbsp; drag to look</div>
+
+<div id="title-screen">
+  <h1>RAMEN RUSH</h1>
+  <p>The busiest little ramen bar in town — cook fast, serve faster.</p>
+  <p class="keys">Press ENTER to start &nbsp;·&nbsp; WASD move &nbsp;·&nbsp; 1-8 ingredients &nbsp;·&nbsp; E interact &nbsp;·&nbsp; Space serve</p>
+</div>
+
+<script src="vendor/three.min.js"></script>
+<script src="src/config.js"></script>
+<script src="src/characters.js"></script>
+<script src="src/world.js"></script>
+<script src="src/game.js"></script>
+<script src="src/shots.js"></script>
+<script src="src/main.js"></script>
+</body>
+</html>
