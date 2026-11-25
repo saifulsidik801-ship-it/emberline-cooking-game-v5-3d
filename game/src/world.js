@@ -383,6 +383,36 @@
     scene.add(table);
     shadowBlob(8.3, 3.6, 0.8, scene);
 
+    // ---- side dining table (right) with two stools for the extra diners ----
+    const sideTable = new T.Group();
+    sideTable.position.set(7.5, 0, 6.6);
+    const sTop = new T.Mesh(new T.BoxGeometry(1.4, 0.08, 0.9), lam(0x6b4423));
+    sTop.position.y = 0.7; sideTable.add(sTop);
+    [[-0.6, -0.35], [0.6, -0.35], [-0.6, 0.35], [0.6, 0.35]].forEach(([dx, dz]) => {
+      const leg = new T.Mesh(new T.BoxGeometry(0.08, 0.7, 0.08), lam(0x4a2c14));
+      leg.position.set(dx, 0.35, dz); sideTable.add(leg);
+    });
+    // plates + bowls on the table
+    [[-0.35, 0], [0.35, 0]].forEach(([dx, dz]) => {
+      const plate = new T.Mesh(new T.CylinderGeometry(0.24, 0.18, 0.07, 14), lam(0xf5f2ea));
+      plate.position.set(dx, 0.78, dz); sideTable.add(plate);
+      const food = new T.Mesh(new T.SphereGeometry(0.15, 10, 6), lam(0xf2d492));
+      food.position.set(dx, 0.83, dz); food.scale.y = 0.45; sideTable.add(food);
+    });
+    scene.add(sideTable);
+    shadowBlob(7.5, 6.6, 0.9, scene);
+    // stools for the two side-table diners
+    [[7.0, 6.6], [8.0, 6.6]].forEach(([x, z]) => {
+      const stool = new T.Group();
+      stool.position.set(x, 0, z);
+      const seat = new T.Mesh(new T.CylinderGeometry(0.3, 0.3, 0.08, 12), lam(0x7a4a22));
+      seat.position.y = 0.55; stool.add(seat);
+      const sleg = new T.Mesh(new T.CylinderGeometry(0.06, 0.08, 0.55, 8), lam(0x4a2c14));
+      sleg.position.y = 0.27; stool.add(sleg);
+      scene.add(stool);
+      shadowBlob(x, z, 0.4, scene);
+    });
+
     // ---- potted plants (corners) ----
     [[-8.3, 4.5], [-8.3, -3.2], [8.3, -3.2]].forEach(([x, z]) => {
       const potP = new T.Mesh(new T.CylinderGeometry(0.3, 0.22, 0.4, 12), lam(0x8a4a2a));

@@ -97,6 +97,9 @@
       { shirt: 0x7a5a3a, hairStyle: 'hair', hair: 0x222222 },
       { shirt: 0xd9a441, hairStyle: 'cap', capColor: 0x2e6b34 },
       { shirt: 0x5a7d9a, hairStyle: 'bun', hair: 0x111111 },
+      { shirt: 0x4f9e57, hairStyle: 'band', bandColor: 0x2e6b34 },
+      { shirt: 0x8a9ab0, hairStyle: 'hair', hair: 0x3a2a1a },
+      { shirt: 0xd94f3d, hairStyle: 'cap', capColor: 0xd94f3d },
     ];
     RR.QUEUE_SPOTS.forEach((s, i) => {
       const c = RR.makePerson(Object.assign({ role: 'customer' }, queueLooks[i]));
@@ -108,6 +111,26 @@
       scene.add(c);
       P.queue.push(c);
       addShadow(c, 0.4);
+    });
+
+    // one waiter carrying a tray across the dining floor (left side)
+    const waiter = RR.makePerson({ role: 'staff', shirt: 0x2e6b8a, skin: 0xe8b88a, hairStyle: 'hair', hair: 0x111111 });
+    waiter.position.set(-6.0, 0, 4.2);
+    waiter.rotation.y = Math.PI; // facing the kitchen
+    RR.setPersonState(waiter, 'carrying');
+    scene.add(waiter);
+    P.waiter = waiter;
+    addShadow(waiter, 0.4);
+
+    // two diners eating at the new side table (right dining area)
+    P.diners = [];
+    [[7.0, 6.6, 0xd94f8a], [8.0, 6.6, 0x4a90d9]].forEach(([x, z, shirt]) => {
+      const d = RR.makePerson({ role: 'customer', shirt, hairStyle: 'hair', hair: 0x222222 });
+      d.position.set(x, 0.55, z);
+      d.rotation.y = Math.PI; // face the kitchen, like the counter customers
+      RR.setPersonState(d, 'eating');
+      scene.add(d);
+      P.diners.push(d);
     });
   }
 
@@ -307,6 +330,8 @@
         P.chefs.forEach((c) => RR.animatePerson(c, elapsed, dt));
         P.customers.forEach((c) => RR.animatePerson(c, elapsed, dt));
         P.queue.forEach((c) => RR.animatePerson(c, elapsed, dt));
+        if (P.waiter) RR.animatePerson(P.waiter, elapsed, dt);
+        if (P.diners) P.diners.forEach((c) => RR.animatePerson(c, elapsed, dt));
       }
       updateEffects(dt);
       movePlayer(dt);

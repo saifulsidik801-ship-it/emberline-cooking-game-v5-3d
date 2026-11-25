@@ -59,5 +59,10 @@
     { x: 6.6, z: 2.8 },
     { x: 7.3, z: 3.8 },
     { x: 6.9, z: 4.9 },
+    // second half of the line, snaking back through the dining area
+    // (kept clear of the side-table diners at (7.0, 6.6) and (8.0, 6.6))
+    { x: 7.8, z: 5.9 },
+    { x: 6.2, z: 6.9 },
+    { x: 7.6, z: 7.6 },
   ];
 })();
