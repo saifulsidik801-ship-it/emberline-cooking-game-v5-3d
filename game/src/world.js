@@ -104,7 +104,7 @@
     W.drawBoard = function (orders) { drawBoard(board, orders); };
 
     // ---- posters on the back wall (right side) ----
-    function poster(x, y, bg, title, sub) {
+    function poster(x, y, bg, title, sub, z, rotY) {
       const t = canvasTex(256, 340, (g, w, h) => {
         g.fillStyle = bg; g.fillRect(0, 0, w, h);
         g.fillStyle = '#fff8ea'; g.fillRect(10, 10, w - 20, h - 20);
@@ -117,12 +117,38 @@
         g.fillText(sub, w / 2, 290);
       });
       const m = new T.Mesh(new T.PlaneGeometry(1.1, 1.45), new T.MeshLambertMaterial({ map: t.tex }));
-      m.position.set(x, y, -4.44);
+      m.position.set(x, y, z === undefined ? -4.44 : z);
+      m.rotation.y = rotY || 0;
       scene.add(m);
     }
     poster(3.4, 2.7, '#1d4e89', 'RAMEN', 'SINCE 1987');
     poster(4.8, 2.7, '#7a1f2b', 'SUSHI', 'FRESH DAILY');
     poster(6.2, 2.7, '#2e6b34', 'TEMPURA', 'CRISPY!');
+    // more posters: fill the bare ends of the back wall + both side walls
+    poster(7.6, 2.7, '#8a5a2e', 'GYOZA', 'PAN-FRIED');
+    poster(-8.6, 2.7, '#5a3a6e', 'SAKE', 'HOT & COLD');
+    poster(-9.44, 2.7, '#2e6b34', 'EBI', 'CRISPY SHRIMP', -1.0, Math.PI / 2);
+    poster(-9.44, 2.7, '#7a1f2b', 'MATCHA', 'GREEN TEA', 1.5, Math.PI / 2);
+    poster(9.44, 2.7, '#8a5a2e', 'UDON', 'THICK NOODLE', -1.0, -Math.PI / 2);
+    poster(9.44, 2.7, '#1d4e89', 'DONBURI', 'RICE BOWL', 1.5, -Math.PI / 2);
+
+    // ---- small chalkboard menu (back wall, far right) ----
+    const chalk = canvasTex(256, 340, (g, w, h) => {
+      g.fillStyle = '#20242a'; g.fillRect(0, 0, w, h);
+      g.strokeStyle = '#8a6a3a'; g.lineWidth = 10; g.strokeRect(5, 5, w - 10, h - 10);
+      g.fillStyle = '#f5f2ea'; g.font = 'bold 30px sans-serif'; g.textAlign = 'center';
+      g.fillText("TODAY'S", w / 2, 52);
+      g.fillText('SPECIAL', w / 2, 88);
+      g.fillStyle = '#ffd27a'; g.font = 'bold 26px sans-serif';
+      g.fillText('TONKOTSU ¥850', w / 2, 150);
+      g.fillText('GYOZA ¥400', w / 2, 195);
+      g.fillText('SAKE ¥600', w / 2, 240);
+      g.fillStyle = '#f5f2ea'; g.font = '22px sans-serif';
+      g.fillText('— open till late —', w / 2, 300);
+    });
+    const chalkMesh = new T.Mesh(new T.PlaneGeometry(0.9, 1.2), new T.MeshLambertMaterial({ map: chalk.tex }));
+    chalkMesh.position.set(8.9, 2.6, -4.44);
+    scene.add(chalkMesh);
 
     // ---- shelf with bottles (back wall, left) ----
     box(2.4, 0.08, 0.3, 0x6b4423, -6.8, 2.5, -4.35, scene);
@@ -327,9 +353,9 @@
     // steam over grill pans
     W.steam.push(makeSteam(scene, -4.5, 1.4, -2.8));
 
-    // ---- hanging paper lanterns (2, warm glow, at the sides so they never
-    // block the menu board) ----
-    const lanternSpots = [[-5.8, 3.6, -2.5], [5.8, 3.6, -2.5]];
+    // ---- hanging paper lanterns (5, warm glow, at the sides so they never
+    // block the menu board; the extra three hang at different heights) ----
+    const lanternSpots = [[-5.8, 3.6, -2.5], [5.8, 3.6, -2.5], [-8.0, 3.3, -2.5], [8.0, 3.9, -2.5], [7.2, 3.6, 2.0]];
     lanternSpots.forEach(([x, ly, lz]) => {
       const grp = new T.Group();
       grp.position.set(x, ly, lz);
@@ -349,6 +375,37 @@
       light.position.set(x, ly - 0.4, lz);
       scene.add(light);
       W.lanternLights.push({ grp, light, phase: x });
+    });
+
+    // ---- second shelf with jars (right wall, above the bonsai table) ----
+    box(0.3, 0.08, 2.0, 0x6b4423, 9.35, 2.6, 4.0, scene);
+    const jarColors = [0xd9a441, 0x2e6b34, 0xd94f3d, 0xe8e2d4];
+    jarColors.forEach((c, i) => {
+      const j = new T.Mesh(new T.CylinderGeometry(0.11, 0.12, 0.3, 10), lam(c));
+      j.position.set(9.35, 2.79, 3.3 + i * 0.47);
+      scene.add(j);
+      const lid = new T.Mesh(new T.CylinderGeometry(0.12, 0.12, 0.05, 10), lam(0x4a2c14));
+      lid.position.set(9.35, 2.96, 3.3 + i * 0.47);
+      scene.add(lid);
+    });
+
+    // ---- noren curtain over a passage on the left wall ----
+    const norenRod = new T.Mesh(new T.CylinderGeometry(0.03, 0.03, 1.9, 8), lam(0x4a2c14));
+    norenRod.rotation.x = Math.PI / 2;
+    norenRod.position.set(-9.42, 3.15, 5.5);
+    scene.add(norenRod);
+    [-0.6, 0, 0.6].forEach((dz, i) => {
+      const nTex = canvasTex(128, 256, (g, w, h) => {
+        g.fillStyle = i === 1 ? '#7a1f2b' : '#2f3a6b'; g.fillRect(0, 0, w, h);
+        g.fillStyle = '#f5f2ea'; g.beginPath(); g.arc(w / 2, 90, 42, 0, Math.PI * 2); g.fill();
+        g.fillStyle = i === 1 ? '#7a1f2b' : '#2f3a6b'; g.beginPath(); g.arc(w / 2, 90, 26, 0, Math.PI * 2); g.fill();
+        g.fillStyle = '#f5f2ea'; g.font = 'bold 34px sans-serif'; g.textAlign = 'center';
+        g.fillText('RAMEN', w / 2, 200);
+      });
+      const panel = new T.Mesh(new T.PlaneGeometry(0.58, 1.4), new T.MeshLambertMaterial({ map: nTex.tex, side: T.DoubleSide }));
+      panel.rotation.y = Math.PI / 2;
+      panel.position.set(-9.42, 2.42, 5.5 + dz);
+      scene.add(panel);
     });
 
     // ---- stools for customers ----
