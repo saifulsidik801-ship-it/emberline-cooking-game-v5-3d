@@ -132,6 +132,23 @@
       scene.add(d);
       P.diners.push(d);
     });
+
+    // two customers crossing the red carpet, mid-stride (walk state swings
+    // legs + arms in place, so they read as walking without drifting off the rug)
+    P.walkers = [];
+    const walkerLooks = [
+      { shirt: 0x2e6b8a, hairStyle: 'cap', capColor: 0xd9a441 },
+      { shirt: 0xe88a2e, hairStyle: 'bun', hair: 0x3a2a1a },
+    ];
+    RR.CARPET_WALKERS.forEach((s, i) => {
+      const w = RR.makePerson(Object.assign({ role: 'customer' }, walkerLooks[i]));
+      w.position.set(s.x, 0, s.z);
+      w.rotation.y = s.rotY;
+      RR.setPersonState(w, 'walk');
+      scene.add(w);
+      P.walkers.push(w);
+      addShadow(w, 0.4);
+    });
   }
 
   function addShadow(person, r) {
@@ -332,6 +349,7 @@
         P.queue.forEach((c) => RR.animatePerson(c, elapsed, dt));
         if (P.waiter) RR.animatePerson(P.waiter, elapsed, dt);
         if (P.diners) P.diners.forEach((c) => RR.animatePerson(c, elapsed, dt));
+        if (P.walkers) P.walkers.forEach((c) => RR.animatePerson(c, elapsed, dt));
       }
       updateEffects(dt);
       movePlayer(dt);

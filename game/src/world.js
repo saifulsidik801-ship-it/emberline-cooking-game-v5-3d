@@ -442,6 +442,32 @@
     rug.rotation.x = -Math.PI / 2;
     rug.position.set(0, 0.025, 5.6);
     scene.add(rug);
+
+    // ---- serving cart with bowls on the red carpet (right edge) ----
+    // two shelves + wheels + bowls, following the side-table pattern above
+    const cart = new T.Group();
+    cart.position.set(2.7, 0, 6.3);
+    const cTop = new T.Mesh(new T.BoxGeometry(1.1, 0.07, 0.7), lam(0x6b4423));
+    cTop.position.y = 0.78; cart.add(cTop);
+    const cLow = new T.Mesh(new T.BoxGeometry(1.0, 0.06, 0.6), lam(0x7a4a22));
+    cLow.position.y = 0.38; cart.add(cLow);
+    [[-0.48, -0.28], [0.48, -0.28], [-0.48, 0.28], [0.48, 0.28]].forEach(([dx, dz]) => {
+      const cLeg = new T.Mesh(new T.BoxGeometry(0.06, 0.78, 0.06), lam(0x4a2c14));
+      cLeg.position.set(dx, 0.39, dz); cart.add(cLeg);
+      const wheel = new T.Mesh(new T.SphereGeometry(0.07, 8, 6), lam(0x222222));
+      wheel.position.set(dx, 0.07, dz); cart.add(wheel);
+    });
+    // bowls of noodles on the top shelf, a plate on the lower shelf
+    [[-0.3, 0.82], [0.3, 0.82]].forEach(([dx, y]) => {
+      const cBowl = new T.Mesh(new T.CylinderGeometry(0.16, 0.11, 0.1, 12), lam(0xd94f3d));
+      cBowl.position.set(dx, y, 0); cart.add(cBowl);
+      const cFood = new T.Mesh(new T.SphereGeometry(0.11, 10, 6), lam(0xf2d492));
+      cFood.position.set(dx, y + 0.05, 0); cFood.scale.y = 0.5; cart.add(cFood);
+    });
+    const cPlate = new T.Mesh(new T.CylinderGeometry(0.2, 0.15, 0.06, 14), lam(0xf5f2ea));
+    cPlate.position.set(0, 0.44, 0); cart.add(cPlate);
+    scene.add(cart);
+    shadowBlob(2.7, 6.3, 0.8, scene);
   }
 
   function makeSteam(scene, x, y, z) {

@@ -65,4 +65,12 @@
     { x: 6.2, z: 6.9 },
     { x: 7.6, z: 7.6 },
   ];
+
+  // two customers crossing the red carpet (rug spans x -3.25..3.25, z 4.0..7.2):
+  // one walking in toward the counter, one just arrived from the entrance.
+  // rotY: Math.PI faces the kitchen (-z); ~0.35 faces the camera/entrance (+z).
+  RR.CARPET_WALKERS = [
+    { x: -1.4, z: 5.0, rotY: Math.PI },
+    { x: 0.9, z: 6.5, rotY: 0.35 },
+  ];
 })();

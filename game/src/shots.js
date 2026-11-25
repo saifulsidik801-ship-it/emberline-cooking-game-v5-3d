@@ -15,7 +15,7 @@
   RR.SHOTS = SHOTS;
 
   function setPeople(states) {
-    // states: {player, chefs:[...], customers:[...], queue:[...], waiter, diners:[...]}
+    // states: {player, chefs:[...], customers:[...], queue:[...], waiter, diners:[...], walkers:[...]}
     const P = RR.people;
     if (!P) return;
     if (states.player) RR.setPersonState(P.player, states.player);
@@ -24,6 +24,7 @@
     (states.queue || []).forEach((s, i) => { if (P.queue[i]) RR.setPersonState(P.queue[i], s); });
     if (states.waiter && P.waiter) RR.setPersonState(P.waiter, states.waiter);
     (states.diners || []).forEach((s, i) => { if (P.diners && P.diners[i]) RR.setPersonState(P.diners[i], s); });
+    (states.walkers || []).forEach((s, i) => { if (P.walkers && P.walkers[i]) RR.setPersonState(P.walkers[i], s); });
   }
 
   function seedTickets(n, states) {
@@ -67,6 +68,7 @@
         queue: ['queue', 'queue', 'queue', 'queue', 'queue', 'queue'],
         waiter: 'carrying',
         diners: ['eating', 'eating'],
+        walkers: ['walk', 'walk'],
       });
     } else if (n === 2) {
       // Side close-up: stations at work, dish mid-assembly on the plating bar
@@ -81,6 +83,7 @@
         queue: ['queue', 'queue', 'queue', 'queue', 'queue', 'queue'],
         waiter: 'carrying',
         diners: ['eating', 'eating'],
+        walkers: ['walk', 'walk'],
       });
       if (P) { P.player.position.x = -1.0; }
     } else if (n === 3) {
@@ -97,6 +100,7 @@
         queue: ['queue', 'queue', 'queue', 'queue', 'queue', 'queue'],
         waiter: 'carrying',
         diners: ['eating', 'eating'],
+        walkers: ['walk', 'walk'],
       });
       if (P) { P.player.position.x = 1.8; }
     } else {
@@ -112,6 +116,7 @@
         queue: ['queue', 'queue', 'queue', 'queue', 'queue', 'queue'],
         waiter: 'carrying',
         diners: ['happy', 'eating'],
+        walkers: ['walk', 'walk'],
       });
       if (P) { P.player.position.x = 2.6; P.player.position.z = -0.9; }
     }
