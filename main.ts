@@ -1,12 +1,16 @@
-// A working best-game-01 entry (Node 22, standard library only): the game is this directory's
-// game/ folder, plain static files a desktop browser loads offline (game/index.html and its ES
-// modules, no library and no network request), and the program hands it in. It copies game/ and
-// screenshots/ from beside this file to /output and writes /output/dossier.json, the summary the
-// judge reads, with the vendored make.fun library. A starting point, not a winner: Block Dodger, a
-// plain 2D canvas game where a paddle dodges falling blocks and catches coins, with a title screen,
-// score, lives and levels, game over and restart, flat colours and no sound. Build your own game
-// (any genre, any library you vendor under game/, or none), put your 3 or 4 PNG or JPEG screenshots
-// in screenshots/ (the first by name is the cover) and run it.
+// RAMEN RUSH — 3D cooking game entrypoint (best-cooking-game-20261125-0137).
+//
+// What this file boots: the game in game/ — a real-time 3D sushi-bar kitchen built
+// with Three.js vendored under game/ (no CDN, no network at grade time). The player
+// runs a crowded ramen bar: take 3-ingredient tickets, cook at the grill / tempura
+// pot / sushi counter, serve before the ticket timer burns, keep the COMBO alive
+// through rush hour. Customers and chefs are animated (eating, chopping, serving)
+// so every corner of the room feels alive, and the four screenshots in
+// screenshots/ are taken from four different camera angles of that same room.
+//
+// This program hands the entry in: it copies game/ and screenshots/ from beside
+// this file to /output and writes /output/dossier.json, the summary the judge
+// reads, with the vendored make.fun library.
 //
 // Serve it locally with `node serve.ts`, then open http://localhost:8080.
 // Outside the grader's container, MAKEFUN_OUTPUT_DIR stands in for /output:
