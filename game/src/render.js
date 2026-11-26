@@ -34,46 +34,130 @@
     g.fillStyle = gr; g.fillRect(x, y, w, h);
   }
 
-  // ---- ingredient mini-icons (drawn, no images) ----
+  // ---- ingredient mini-icons: real food, drawn, no images ----
+  // Each icon must read as the actual ingredient at a glance, even at r=5-6
+  // (ticket dots, recipe-book dots) and at r=10-11 (bins, plate, hands).
   function ingIcon(g, name, x, y, r) {
     g.save();
     g.translate(x, y);
-    const B = RR.BINS.find((b) => b.name === name) || { color: '#fff', dark: '#888' };
+    g.lineCap = 'round'; g.lineJoin = 'round';
     if (name === 'Noodle') {
-      g.strokeStyle = B.color; g.lineWidth = r * 0.22; g.lineCap = 'round';
-      for (let i = -1; i <= 1; i++) { g.beginPath(); g.moveTo(-r + 2, i * r * 0.45); g.bezierCurveTo(-r * 0.3, i * r * 0.45 - r * 0.4, r * 0.3, i * r * 0.45 + r * 0.4, r - 2, i * r * 0.45); g.stroke(); }
-    } else if (name === 'Cabbage' || name === 'Negi') {
-      circle(g, 0, 0, r, B.color);
-      g.strokeStyle = B.dark; g.lineWidth = 1.5;
-      g.beginPath(); g.moveTo(-r * 0.5, -r * 0.3); g.quadraticCurveTo(0, r * 0.2, r * 0.5, -r * 0.3); g.stroke();
-      if (name === 'Negi') { g.strokeStyle = '#fff'; g.beginPath(); g.moveTo(-r * 0.4, r * 0.4); g.lineTo(r * 0.4, -r * 0.4); g.stroke(); }
+      // wavy yellow noodle bundle + gloss strand
+      g.strokeStyle = '#f2d492'; g.lineWidth = Math.max(1.5, r * 0.26);
+      for (let i = -1; i <= 1; i++) {
+        g.beginPath(); g.moveTo(-r + 2, i * r * 0.42);
+        g.bezierCurveTo(-r * 0.35, i * r * 0.42 - r * 0.45, r * 0.35, i * r * 0.42 + r * 0.45, r - 2, i * r * 0.42);
+        g.stroke();
+      }
+      g.strokeStyle = '#fff3c9'; g.lineWidth = Math.max(1, r * 0.1);
+      g.beginPath(); g.moveTo(-r + 4, -r * 0.42); g.bezierCurveTo(-r * 0.3, -r * 0.85, r * 0.3, -r * 0.05, r - 4, -r * 0.42); g.stroke();
+    } else if (name === 'Cabbage') {
+      // layered green leaves
+      g.fillStyle = '#a8e063'; g.beginPath(); g.ellipse(0, r * 0.1, r * 0.95, r * 0.7, 0, 0, Math.PI * 2); g.fill();
+      g.fillStyle = '#7cc242'; g.beginPath(); g.ellipse(-r * 0.3, -r * 0.15, r * 0.6, r * 0.45, -0.4, 0, Math.PI * 2); g.fill();
+      g.fillStyle = '#c4ec8a'; g.beginPath(); g.ellipse(r * 0.25, -r * 0.25, r * 0.5, r * 0.4, 0.4, 0, Math.PI * 2); g.fill();
+      g.strokeStyle = '#5d9430'; g.lineWidth = Math.max(1, r * 0.08);
+      g.beginPath(); g.moveTo(-r * 0.6, r * 0.1); g.quadraticCurveTo(0, -r * 0.5, r * 0.6, r * 0.1); g.stroke();
+    } else if (name === 'Negi') {
+      // scallion rings: green rims, white centres, pale core
+      const ring = (dx, dy, q) => {
+        circle(g, dx, dy, q, '#3f8f46');
+        circle(g, dx, dy, q * 0.55, '#f5f2ea');
+        circle(g, dx, dy, q * 0.22, '#9ed69a');
+      };
+      ring(-r * 0.42, r * 0.1, r * 0.42); ring(r * 0.38, -r * 0.28, r * 0.4); ring(r * 0.15, r * 0.45, r * 0.36);
     } else if (name === 'Pork') {
-      g.fillStyle = B.color; rr(g, -r, -r * 0.55, r * 2, r * 1.1, r * 0.4); g.fill();
-      g.fillStyle = '#fff'; rr(g, -r * 0.6, -r * 0.25, r * 1.2, r * 0.3, 3); g.fill();
+      // chashu slice: pink meat, white fat ring, darker core + gloss
+      g.fillStyle = '#e58aa0'; g.beginPath(); g.ellipse(0, 0, r * 0.95, r * 0.8, -0.3, 0, Math.PI * 2); g.fill();
+      g.fillStyle = '#f7d9de'; g.beginPath(); g.ellipse(0, 0, r * 0.62, r * 0.5, -0.3, 0, Math.PI * 2); g.fill();
+      g.fillStyle = '#d96a84'; g.beginPath(); g.ellipse(0, 0, r * 0.34, r * 0.26, -0.3, 0, Math.PI * 2); g.fill();
+      g.fillStyle = 'rgba(255,255,255,0.5)'; g.beginPath(); g.ellipse(-r * 0.3, -r * 0.35, r * 0.25, r * 0.12, -0.5, 0, Math.PI * 2); g.fill();
     } else if (name === 'Chicken') {
-      circle(g, -r * 0.2, -r * 0.1, r * 0.62, B.color);
-      g.strokeStyle = '#f5f2ea'; g.lineWidth = r * 0.3; g.lineCap = 'round';
-      g.beginPath(); g.moveTo(r * 0.3, r * 0.2); g.lineTo(r * 0.9, r * 0.8); g.stroke();
+      // golden yakitori piece with char stripes + gloss
+      g.fillStyle = '#e8a54b'; rr(g, -r * 0.85, -r * 0.7, r * 1.7, r * 1.4, r * 0.45); g.fill();
+      g.fillStyle = '#f6c177'; rr(g, -r * 0.6, -r * 0.5, r * 1.2, r * 0.8, r * 0.35); g.fill();
+      g.strokeStyle = '#8a5a2e'; g.lineWidth = Math.max(1.2, r * 0.12);
+      g.beginPath(); g.moveTo(-r * 0.4, -r * 0.55); g.lineTo(-r * 0.1, r * 0.55); g.stroke();
+      g.beginPath(); g.moveTo(r * 0.25, -r * 0.55); g.lineTo(r * 0.55, r * 0.55); g.stroke();
+      g.fillStyle = 'rgba(255,255,255,0.45)'; g.beginPath(); g.ellipse(-r * 0.25, -r * 0.3, r * 0.3, r * 0.12, -0.4, 0, Math.PI * 2); g.fill();
     } else if (name === 'Shrimp') {
-      g.strokeStyle = B.color; g.lineWidth = r * 0.42; g.lineCap = 'round';
-      g.beginPath(); g.arc(0, r * 0.1, r * 0.62, Math.PI * 0.9, Math.PI * 2.05); g.stroke();
+      // orange curved shrimp: segmented body + tail fan
+      g.strokeStyle = '#f08a5c'; g.lineWidth = Math.max(2, r * 0.5);
+      g.beginPath(); g.arc(0, r * 0.12, r * 0.6, Math.PI * 0.85, Math.PI * 2.1); g.stroke();
+      g.strokeStyle = '#ffbe8a'; g.lineWidth = Math.max(1.2, r * 0.22);
+      g.beginPath(); g.arc(0, r * 0.12, r * 0.6, Math.PI * 1.15, Math.PI * 1.75); g.stroke();
+      g.fillStyle = '#e86a3d';
+      g.save(); g.translate(-r * 0.55, -r * 0.35); g.rotate(-0.7);
+      g.beginPath(); g.moveTo(0, 0); g.lineTo(-r * 0.35, -r * 0.25); g.lineTo(-r * 0.3, r * 0.2); g.closePath(); g.fill();
+      g.restore();
+      g.strokeStyle = '#c25a2e'; g.lineWidth = Math.max(1, r * 0.09);
+      g.beginPath(); g.moveTo(-r * 0.1, -r * 0.5); g.lineTo(-r * 0.05, -r * 0.28); g.stroke();
+      g.beginPath(); g.moveTo(r * 0.42, -r * 0.32); g.lineTo(r * 0.3, -r * 0.12); g.stroke();
     } else if (name === 'Mushroom') {
-      g.fillStyle = B.color; g.beginPath(); g.arc(0, -r * 0.15, r * 0.72, Math.PI, 0); g.fill();
-      g.fillStyle = '#fff'; g.fillRect(-r * 0.22, -r * 0.15, r * 0.44, r * 0.75);
-    } else { // Egg
-      circle(g, 0, 0, r, '#fff');
-      circle(g, 0, 0, r * 0.55, '#ffcf3f');
+      // shiitake: brown cap, cream stem, pale star cut + gloss
+      g.fillStyle = '#8f6b3a'; g.beginPath(); g.arc(0, -r * 0.1, r * 0.75, Math.PI, 0); g.fill();
+      g.fillStyle = '#a87c46'; g.beginPath(); g.arc(0, -r * 0.1, r * 0.6, Math.PI * 1.05, Math.PI * 1.95); g.fill();
+      g.fillStyle = '#f5ead2'; g.fillRect(-r * 0.2, -r * 0.15, r * 0.4, r * 0.8);
+      g.strokeStyle = '#f5ead2'; g.lineWidth = Math.max(1, r * 0.1);
+      g.beginPath(); g.moveTo(-r * 0.25, -r * 0.55); g.lineTo(0, -r * 0.3); g.lineTo(r * 0.25, -r * 0.55); g.stroke();
+      g.fillStyle = 'rgba(255,255,255,0.35)'; g.beginPath(); g.ellipse(-r * 0.3, -r * 0.5, r * 0.2, r * 0.1, -0.5, 0, Math.PI * 2); g.fill();
+    } else { // Egg — ajitama half: white oval, glossy orange yolk
+      g.fillStyle = '#fffdf5'; g.beginPath(); g.ellipse(0, 0, r * 0.9, r * 0.75, 0, 0, Math.PI * 2); g.fill();
+      g.fillStyle = '#ff9d2e'; g.beginPath(); g.arc(0, r * 0.05, r * 0.48, 0, Math.PI * 2); g.fill();
+      g.fillStyle = '#ffc93d'; g.beginPath(); g.arc(-r * 0.1, -r * 0.05, r * 0.3, 0, Math.PI * 2); g.fill();
+      g.fillStyle = 'rgba(255,255,255,0.85)'; g.beginPath(); g.arc(-r * 0.18, -r * 0.12, r * 0.1, 0, Math.PI * 2); g.fill();
     }
     g.restore();
   }
+  // A real ramen bowl: lacquered bowl + glossy broth + noodle swirls +
+  // recognisable toppings from the recipe + narutomaki + nori + steam.
   function bowlIcon(g, recipe, x, y, r) {
     g.save(); g.translate(x, y);
-    g.fillStyle = '#1d1208'; g.beginPath(); g.ellipse(0, r * 0.55, r * 1.05, r * 0.3, 0, 0, Math.PI * 2); g.fill();
-    g.fillStyle = recipe.bowl; g.beginPath(); g.ellipse(0, r * 0.35, r, r * 0.62, 0, 0, Math.PI); g.fill();
-    g.fillStyle = '#f7e8c8'; g.beginPath(); g.ellipse(0, -r * 0.05, r * 0.92, r * 0.42, 0, 0, Math.PI * 2); g.fill();
-    recipe.needs.forEach((n, i) => { const a = -0.9 + i * 0.9; ingIcon(g, n, Math.cos(a) * r * 0.45, -r * 0.05 + Math.sin(a) * r * 0.16, r * 0.3); });
-    g.strokeStyle = 'rgba(255,255,255,0.85)'; g.lineWidth = 2;
-    g.beginPath(); g.moveTo(r * 0.5, -r * 0.5); g.quadraticCurveTo(r * 0.7, -r * 1.1, r * 0.45, -r * 1.25); g.stroke();
+    const tops = recipe.needs || [];
+    const isRamen = recipe.name && /ramen|omakase/i.test(recipe.name);
+    // steam wisps
+    g.strokeStyle = 'rgba(255,255,255,0.75)'; g.lineWidth = Math.max(1.2, r * 0.08); g.lineCap = 'round';
+    g.beginPath(); g.moveTo(-r * 0.3, -r * 1.15); g.quadraticCurveTo(-r * 0.1, -r * 1.45, -r * 0.3, -r * 1.7); g.stroke();
+    g.beginPath(); g.moveTo(r * 0.25, -r * 1.1); g.quadraticCurveTo(r * 0.45, -r * 1.4, r * 0.25, -r * 1.65); g.stroke();
+    // nori sheet standing at the back (ramen only)
+    if (isRamen) {
+      g.fillStyle = '#1d3a1d'; rr(g, r * 0.42, -r * 1.25, r * 0.34, r * 0.85, 2); g.fill();
+      g.fillStyle = '#2a5230'; g.fillRect(r * 0.46, -r * 1.2, r * 0.1, r * 0.7);
+    }
+    // table shadow + bowl body
+    g.fillStyle = '#1d1208'; g.beginPath(); g.ellipse(0, r * 0.62, r * 0.9, r * 0.26, 0, 0, Math.PI * 2); g.fill();
+    g.fillStyle = recipe.bowl || '#c0392b';
+    g.beginPath(); g.moveTo(-r, -r * 0.1);
+    g.quadraticCurveTo(-r, r * 0.75, 0, r * 0.78);
+    g.quadraticCurveTo(r, r * 0.75, r, -r * 0.1);
+    g.closePath(); g.fill();
+    // rim highlight
+    g.strokeStyle = 'rgba(255,255,255,0.35)'; g.lineWidth = Math.max(1, r * 0.06);
+    g.beginPath(); g.ellipse(0, -r * 0.1, r * 0.96, r * 0.3, 0, Math.PI, Math.PI * 2); g.stroke();
+    // broth surface: warm amber + lighter pool + gloss arc
+    g.fillStyle = '#c98f3f'; g.beginPath(); g.ellipse(0, -r * 0.08, r * 0.88, r * 0.34, 0, 0, Math.PI * 2); g.fill();
+    g.fillStyle = '#e0aa58'; g.beginPath(); g.ellipse(-r * 0.15, -r * 0.14, r * 0.55, r * 0.18, 0, 0, Math.PI * 2); g.fill();
+    g.strokeStyle = 'rgba(255,255,255,0.55)'; g.lineWidth = Math.max(1, r * 0.07);
+    g.beginPath(); g.ellipse(0, -r * 0.08, r * 0.7, r * 0.24, 0, Math.PI * 1.15, Math.PI * 1.6); g.stroke();
+    // noodle swirls on the broth
+    g.strokeStyle = '#f2d492'; g.lineWidth = Math.max(1.2, r * 0.1);
+    for (let i = -1; i <= 1; i++) {
+      g.beginPath(); g.moveTo(-r * 0.55, r * 0.02 + i * r * 0.12);
+      g.bezierCurveTo(-r * 0.2, r * 0.02 + i * r * 0.12 - r * 0.14, r * 0.2, r * 0.02 + i * r * 0.12 + r * 0.14, r * 0.55, r * 0.02 + i * r * 0.12);
+      g.stroke();
+    }
+    // toppings from the recipe, arranged on the broth
+    const pos = [[-r * 0.5, -r * 0.28], [r * 0.45, -r * 0.3], [0, -r * 0.42], [-r * 0.1, r * 0.1], [r * 0.2, r * 0.12]];
+    tops.forEach((n, i) => { const p = pos[i % pos.length]; ingIcon(g, n, p[0], p[1], r * 0.34); });
+    // narutomaki — white disc with pink spiral (ramen signature)
+    if (isRamen) {
+      g.save(); g.translate(r * 0.55, r * 0.05);
+      circle(g, 0, 0, r * 0.26, '#fff');
+      g.strokeStyle = '#ff7fa5'; g.lineWidth = Math.max(1, r * 0.07);
+      g.beginPath(); g.arc(0, 0, r * 0.16, 0.3, Math.PI * 1.8); g.stroke();
+      g.beginPath(); g.arc(0, 0, r * 0.07, Math.PI, Math.PI * 2.6); g.stroke();
+      g.restore();
+    }
     g.restore();
   }
 
@@ -166,21 +250,57 @@
       g.fillStyle = '#3d3d3d'; rr(g, cx - 42, cy - 18, 84, 36, 8); g.fill();
       g.fillStyle = st.id === 'broth' ? '#8a5a2e' : '#e8c87a';
       g.beginPath(); g.ellipse(cx, cy - 16, 38, 9, 0, 0, Math.PI * 2); g.fill();
+      // gloss on the liquid
+      g.strokeStyle = 'rgba(255,255,255,0.45)'; g.lineWidth = 2;
+      g.beginPath(); g.ellipse(cx - 8, cy - 18, 18, 4, 0, Math.PI * 1.1, Math.PI * 1.7); g.stroke();
       for (let i = 0; i < 3; i++) {
         const bx = cx - 22 + i * 22 + Math.sin(t * 3 + i * 2) * 3;
         circle(g, bx, cy - 18 - ((t * 14 + i * 9) % 10), 3.5, 'rgba(255,220,150,0.85)');
       }
-      if (st.id === 'noodle') {
-        g.strokeStyle = '#f2d492'; g.lineWidth = 3; g.lineCap = 'round';
-        for (let i = -1; i <= 1; i++) { g.beginPath(); g.moveTo(cx + i * 14 - 8, cy - 24); g.quadraticCurveTo(cx + i * 14, cy - 34, cx + i * 14 + 8, cy - 24); g.stroke(); }
+      if (st.id === 'broth') {
+        // noodle swirls lying in the rich broth + chashu and negi on top
+        g.strokeStyle = '#f2d492'; g.lineWidth = 2.5; g.lineCap = 'round';
+        for (let i = -1; i <= 1; i++) {
+          g.beginPath(); g.moveTo(cx + i * 15 - 10, cy - 18 + i * 2.5);
+          g.bezierCurveTo(cx + i * 15 - 3, cy - 24 + i * 2.5, cx + i * 15 + 3, cy - 12 + i * 2.5, cx + i * 15 + 10, cy - 18 + i * 2.5);
+          g.stroke();
+        }
+        ingIcon(g, 'Pork', cx + 20, cy - 20, 7);
+        ingIcon(g, 'Negi', cx - 20, cy - 20, 6);
+      } else {
+        // noodle boil: a lifted bundle on chopsticks
+        g.strokeStyle = '#8a5a2e'; g.lineWidth = 3; g.lineCap = 'round';
+        g.beginPath(); g.moveTo(cx - 6, cy - 52); g.lineTo(cx + 26, cy - 40); g.stroke();
+        g.beginPath(); g.moveTo(cx - 2, cy - 48); g.lineTo(cx + 30, cy - 36); g.stroke();
+        g.strokeStyle = '#f2d492'; g.lineWidth = 3;
+        for (let i = -2; i <= 2; i++) { g.beginPath(); g.moveTo(cx + i * 7 - 4, cy - 24); g.quadraticCurveTo(cx + i * 7, cy - 40, cx + i * 7 + 4, cy - 24); g.stroke(); }
+        g.strokeStyle = '#fff3c9'; g.lineWidth = 1.2;
+        g.beginPath(); g.moveTo(cx - 12, cy - 28); g.quadraticCurveTo(cx, cy - 36, cx + 12, cy - 28); g.stroke();
       }
     } else if (st.id === 'chop') {
       g.fillStyle = '#d9b380'; rr(g, cx - 40, cy - 8, 80, 16, 5); g.fill();
       const ch = active ? Math.sin(t * 16) * 10 : 0;
       g.fillStyle = '#c9c9c9'; g.save(); g.translate(cx + 18, cy - 26 + ch); g.rotate(-0.5); g.fillRect(-16, -3, 32, 6); g.fillStyle = '#3a2a1a'; g.fillRect(14, -2, 12, 4); g.restore();
-      ingIcon(g, 'Negi', cx - 18, cy - 14, 7); ingIcon(g, 'Cabbage', cx + 2, cy - 12, 7);
+      // chopped negi rings scattered on the board
+      [[-26, -12], [-14, -16], [-4, -11]].forEach(([dx, dy]) => {
+        circle(g, cx + dx, cy + dy, 4.5, '#3f8f46');
+        circle(g, cx + dx, cy + dy, 2.4, '#f5f2ea');
+        circle(g, cx + dx, cy + dy, 1, '#9ed69a');
+      });
+      // cabbage shreds
+      g.strokeStyle = '#8fd14f'; g.lineWidth = 3; g.lineCap = 'round';
+      g.beginPath(); g.moveTo(cx + 8, cy - 16); g.lineTo(cx + 22, cy - 10); g.stroke();
+      g.beginPath(); g.moveTo(cx + 12, cy - 8); g.lineTo(cx + 26, cy - 14); g.stroke();
+      g.strokeStyle = '#c4ec8a'; g.lineWidth = 2;
+      g.beginPath(); g.moveTo(cx + 6, cy - 5); g.lineTo(cx + 18, cy - 11); g.stroke();
+      // a sliced mushroom
+      ingIcon(g, 'Mushroom', cx + 32, cy - 12, 6);
     } else if (st.id === 'grill') {
       g.fillStyle = '#222'; rr(g, cx - 40, cy - 6, 80, 22, 6); g.fill();
+      // glowing coals under the grate
+      for (let i = 0; i < 4; i++) {
+        circle(g, cx - 28 + i * 18, cy + 8, 4, i % 2 ? '#ff6a2a' : '#ffb03d');
+      }
       for (let i = 0; i < 3; i++) {
         const fh = 14 + Math.sin(t * 11 + i * 2.4) * 6;
         g.fillStyle = i % 2 ? '#ff8a3d' : '#ffc93d';
@@ -188,17 +308,22 @@
       }
       g.strokeStyle = '#8a6a3a'; g.lineWidth = 3;
       g.beginPath(); g.moveTo(cx - 34, cy - 12); g.lineTo(cx + 34, cy - 12); g.stroke();
-      ingIcon(g, 'Chicken', cx - 12, cy - 16, 7); ingIcon(g, 'Pork', cx + 14, cy - 16, 7);
+      ingIcon(g, 'Chicken', cx - 12, cy - 16, 8); ingIcon(g, 'Pork', cx + 14, cy - 16, 8);
+      // smoke wisp
+      g.strokeStyle = 'rgba(255,255,255,0.55)'; g.lineWidth = 2; g.lineCap = 'round';
+      g.beginPath(); g.moveTo(cx + 26, cy - 30); g.quadraticCurveTo(cx + 32, cy - 40, cx + 26, cy - 48); g.stroke();
     } else if (st.id === 'plating') {
       const G = RR.game;
       g.fillStyle = '#f5f2ea'; g.beginPath(); g.ellipse(cx, cy + 6, 44, 13, 0, 0, Math.PI * 2); g.fill();
       g.fillStyle = '#d9d2c2'; g.beginPath(); g.ellipse(cx, cy + 6, 30, 8, 0, 0, Math.PI * 2); g.fill();
       if (G.plate.length) {
-        G.plate.forEach((n, i) => ingIcon(g, n, cx - 24 + i * 24, cy - 2, 9));
+        // a composed bowl: glossy broth + noodle swirls + the plated toppings
+        const rec = G.plateRecipe || { name: 'Bowl', needs: G.plate.slice(), bowl: '#c0392b' };
+        bowlIcon(g, rec, cx, cy - 2, 24);
         if (G.plateState === 'cooking' || G.plateState === 'ready') {
           const p = G.plateState === 'ready' ? 1 : G.plateTimer / RR.CONFIG.cookTime;
           g.strokeStyle = G.plateState === 'ready' ? '#7ddb8a' : '#ffd27a'; g.lineWidth = 5;
-          g.beginPath(); g.arc(cx, cy - 2, 30, -Math.PI / 2, -Math.PI / 2 + p * Math.PI * 2); g.stroke();
+          g.beginPath(); g.arc(cx, cy - 2, 32, -Math.PI / 2, -Math.PI / 2 + p * Math.PI * 2); g.stroke();
         }
       } else {
         txt(g, 'EMPTY PLATE', cx, cy + 2, 11, '#8a7a5a', 'center');
