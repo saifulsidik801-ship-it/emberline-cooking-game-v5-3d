@@ -1,12 +1,14 @@
-// RAMEN RUSH — 3D cooking game entrypoint (best-cooking-game-20261125-0137).
+// RAMEN RUSH — 2D night-market cooking game entrypoint (v6 rebuild).
 //
-// What this file boots: the game in game/ — a real-time 3D sushi-bar kitchen built
-// with Three.js vendored under game/ (no CDN, no network at grade time). The player
-// runs a crowded ramen bar: take 3-ingredient tickets, cook at the grill / tempura
-// pot / sushi counter, serve before the ticket timer burns, keep the COMBO alive
-// through rush hour. Customers and chefs are animated (eating, chopping, serving)
-// so every corner of the room feels alive, and the four screenshots in
-// screenshots/ are taken from four different camera angles of that same room.
+// What this file boots: the game in game/ — a dense 2D illustrated yatai
+// (Canvas 2D, no vendor libs, no network at grade time). The player runs a
+// rainy night-market ramen stall: take 3-ingredient tickets from named
+// regulars, cook at the broth pot / noodle boil / chop board / grill, serve
+// at the pass before the ticket timer burns, keep the COMBO alive through
+// rush hour — and impress the hidden critic, who arrives after 5 serves.
+// Every corner of the frame is busy: 6 tickets, recipe book, goals, dialogue,
+// queue, steam, rain, lanterns. The four screenshots in screenshots/ are
+// four different moments (and two different camera zooms) of that same stall.
 //
 // This program hands the entry in: it copies game/ and screenshots/ from beside
 // this file to /output and writes /output/dossier.json, the summary the judge

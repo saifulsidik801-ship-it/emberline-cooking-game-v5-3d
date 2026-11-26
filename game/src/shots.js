@@ -1,144 +1,109 @@
-// RAMEN RUSH — four cameras, four genuinely different angles.
-// 1 = wide from the dining side (whole bar, like the reference)
-// 2 = close-up from the side, on the cooking stations
-// 3 = title opening screen (big RAMEN RUSH title over the busy bar)
-// 4 = low from the dining side, watching the chef serve
+// RAMEN RUSH v6 — four staged moments, four genuinely different framings.
+// 1 = wide: the whole yatai on a rush night, 6 tickets, critic at the counter
+// 2 = zoomed on the stations: plating mid-assembly + grill cooking (camera 1.5x)
+// 3 = title opening: big RAMEN RUSH over the busy stall
+// 4 = zoomed on the pass: ORDER UP! with the critic served (camera 1.6x)
+// Shots differ in game state AND camera, so no two look alike.
 (function () {
   const RR = (window.RR = window.RR || {});
-
-  const SHOTS = [
-    { name: '1-rush', pos: [0.8, 3.1, 11.3], target: [0.6, 1.25, -1.5] },
-    { name: '2-plating', pos: [-8.6, 1.8, 3.6], target: [-3.2, 1.1, -1.6] },
-    { name: '3-title', pos: [-3.5, 2.6, 9.0], target: [0, 1.3, -1.0] },
-    { name: '4-burnt', pos: [4.6, 1.0, 5.2], target: [2.4, 1.5, -1.0] },
-  ];
-  RR.SHOTS = SHOTS;
-
-  function setPeople(states) {
-    // states: {player, chefs:[...], customers:[...], queue:[...], waiter, diners:[...], walkers:[...]}
-    const P = RR.people;
-    if (!P) return;
-    if (states.player) RR.setPersonState(P.player, states.player);
-    (states.chefs || []).forEach((s, i) => { if (P.chefs[i]) RR.setPersonState(P.chefs[i], s); });
-    (states.customers || []).forEach((s, i) => { if (P.customers[i]) RR.setPersonState(P.customers[i], s); });
-    (states.queue || []).forEach((s, i) => { if (P.queue[i]) RR.setPersonState(P.queue[i], s); });
-    if (states.waiter && P.waiter) RR.setPersonState(P.waiter, states.waiter);
-    (states.diners || []).forEach((s, i) => { if (P.diners && P.diners[i]) RR.setPersonState(P.diners[i], s); });
-    (states.walkers || []).forEach((s, i) => { if (P.walkers && P.walkers[i]) RR.setPersonState(P.walkers[i], s); });
-  }
 
   function seedTickets(n, states) {
     const G = RR.game;
     G.orders = [];
     for (let i = 0; i < n; i++) {
       const recipe = RR.RECIPES[(i * 2 + 1) % RR.RECIPES.length];
+      const customer = RR.REGULARS[i % RR.REGULARS.length];
       G.orders.push({
-        id: ++G.orderSeq, recipe, seat: 1 + ((i * 3) % 8),
-        timeLeft: [34, 22, 44, 41, 18][i] || 30, timeMax: RR.CONFIG.orderTime,
+        id: ++G.orderSeq, recipe, seat: 1 + ((i * 3) % 5),
+        customer, timeLeft: [34, 22, 44, 41, 18, 52][i] || 30, timeMax: RR.CONFIG.orderTime,
         state: (states && states[i]) || 'new',
       });
     }
-    RR.gameApi.updateBoard();
-    RR.gameApi.updateOrderCard();
+    G.dialogue = { c: G.orders[0].customer, line: G.orders[0].customer.lines[0] };
+  }
+  function seedQueue(names) {
+    const G = RR.game;
+    G.queue = names.map((n, i) => ({ c: RR.REGULARS.find((r) => r.name === n) || RR.REGULARS[i], wait: [6, 14, 23][i] || 10 }));
   }
 
   function stageShot(n) {
     const G = RR.game;
     if (!G.started) RR.gameApi.startGame();
-    // title screen only on shot 3 (startGame hides it; show it back here)
-    const titleEl = document.getElementById('title-screen');
-    if (titleEl) titleEl.style.display = (n === 3) ? 'flex' : 'none';
-    G.over = false;
-    const P = RR.people;
-    if (P) {
-      P.player.position.x = 0.5;
-      P.player.position.z = RR.CONFIG.chefZ;
-      P.player.rotation.y = 0;
-    }
+    G.over = false; G.paused = false;
+    G.rush = false; G.rushLeft = 0; G.rushTimer = 0;
+    G.chefAction = null; G.chefActionT = 0; G.chefActionStation = null;
+    G.walkTarget = null; G.walkInteract = false;
+    G.toastT = 0; G.heroT = 0;
+    RR.cam.scale = 1; RR.cam.cx = 640; RR.cam.cy = 380;
     if (n === 1) {
-      // Wide: whole bar, busy lunch, chef carrying a tray mid-floor
-      seedTickets(4);
-      G.score = 1250; G.money = 48; G.combo = 3; G.comboTimer = 10; G.rush = false;
+      // Wide rush night: 6 tickets, critic at the counter, combo alive
+      seedTickets(6);
+      G.orders[5].customer = RR.CRITIC; G.orders[5].recipe = RR.RECIPES[4];
+      G.criticActive = true; G.criticOffered = true;
+      G.score = 12480; G.money = 412; G.tips = 96; G.combo = 5; G.comboTimer = 9; G.bestCombo = 5;
+      G.served = 7; G.missed = 0; G.hearts = 3; G.dayTime = 62; G.progress = 0.41;
+      G.rush = true; G.rushLeft = 9;
+      G.goals = { serve8: false, combo5: true, critic: false, nowalk: true };
       G.plate = ['Noodle', 'Pork']; G.plateRecipe = RR.RECIPES[0]; G.plateState = 'assembling'; G.plateTimer = 0;
       G.hands = ['Egg', null];
-      setPeople({
-        player: 'carrying',
-        chefs: ['stirring', 'stirring', 'chopping'],
-        customers: ['eating', 'eating', 'happy', 'eating', 'idle', 'eating', 'eating', 'happy'],
-        queue: ['queue', 'queue', 'queue', 'queue', 'queue', 'queue'],
-        waiter: 'carrying',
-        diners: ['eating', 'eating'],
-        walkers: ['walk', 'walk'],
-      });
+      G.chefX = 684; G.chefAction = 'stirring'; G.chefActionT = 2.4; G.chefActionStation = 'grill';
+      G.dialogue = { c: RR.CRITIC, line: 'I write for the city paper. Impress me.' };
+      seedQueue(['Ken · Taxi', 'Mika · Nurse', 'Old Sato']);
     } else if (n === 2) {
-      // Side close-up: stations at work, dish mid-assembly on the plating bar
-      seedTickets(3, ['cooking', 'new', 'new']);
-      G.score = 860; G.money = 31; G.combo = 2; G.comboTimer = 8; G.rush = false;
-      G.plate = ['Shrimp', 'Cabbage', 'Egg']; G.plateRecipe = RR.RECIPES[1]; G.plateState = 'cooking'; G.plateTimer = 1.2;
-      G.hands = [null, null];
-      setPeople({
-        player: 'chopping',
-        chefs: ['stirring', 'stirring', 'chopping'],
-        customers: ['eating', 'idle', 'eating', 'eating', 'happy', 'idle', 'eating', 'eating'],
-        queue: ['queue', 'queue', 'queue', 'queue', 'queue', 'queue'],
-        waiter: 'carrying',
-        diners: ['eating', 'eating'],
-        walkers: ['walk', 'walk'],
-      });
-      if (P) { P.player.position.x = -1.0; }
-    } else if (n === 3) {
-      // Title opening: big RAMEN RUSH title over the busy bar, 4 tickets up
+      // Zoom on stations: full plate cooking on the grill, chop mid-action
       seedTickets(4);
-      G.score = 2140; G.money = 58; G.combo = 3; G.comboTimer = 11;
-      G.rush = false; G.rushLeft = 0; G.rushTimer = 0;
-      G.plate = ['Noodle', 'Shrimp', 'Mushroom']; G.plateRecipe = RR.RECIPES[4]; G.plateState = 'assembling'; G.plateTimer = 0;
-      G.hands = ['Chicken', null];
-      setPeople({
-        player: 'carrying',
-        chefs: ['stirring', 'stirring', 'chopping'],
-        customers: ['happy', 'eating', 'eating', 'happy', 'eating', 'eating', 'happy', 'eating'],
-        queue: ['queue', 'queue', 'queue', 'queue', 'queue', 'queue'],
-        waiter: 'carrying',
-        diners: ['eating', 'eating'],
-        walkers: ['walk', 'walk'],
-      });
-      if (P) { P.player.position.x = 1.8; }
-    } else {
-      // Low dining angle: chef serving at the bell, one burnt dish smoking
-      seedTickets(4, ['ready', 'burnt', 'new', 'new']);
-      G.score = 1730; G.money = 52; G.combo = 2; G.comboTimer = 9; G.rush = false;
-      G.plate = ['Mushroom', 'Chicken', 'Egg']; G.plateRecipe = RR.RECIPES[5]; G.plateState = 'burnt'; G.plateTimer = 8;
+      G.score = 9860; G.money = 318; G.tips = 74; G.combo = 3; G.comboTimer = 8; G.bestCombo = 4;
+      G.served = 5; G.missed = 1; G.hearts = 2; G.dayTime = 88; G.progress = 0.59;
+      G.goals = { serve8: false, combo5: false, critic: false, nowalk: false };
+      G.plate = ['Shrimp', 'Cabbage', 'Egg']; G.plateRecipe = RR.RECIPES[1]; G.plateState = 'cooking'; G.plateTimer = 1.6;
       G.hands = [null, null];
-      setPeople({
-        player: 'serve',
-        chefs: ['stirring', 'stirring', 'idle'],
-        customers: ['happy', 'happy', 'eating', 'eating', 'happy', 'eating', 'eating', 'sad'],
-        queue: ['queue', 'queue', 'queue', 'queue', 'queue', 'queue'],
-        waiter: 'carrying',
-        diners: ['happy', 'eating'],
-        walkers: ['walk', 'walk'],
-      });
-      if (P) { P.player.position.x = 2.6; P.player.position.z = -0.9; }
+      G.chefX = 684; G.chefAction = 'stirring'; G.chefActionT = 1.4; G.chefActionStation = 'grill';
+      G.dialogue = { c: RR.REGULARS[1], line: 'Quick! My meter is running.' };
+      seedQueue(['Aoi · Student', 'Ren · Salaryman', 'Grandma Yuki']);
+      // window chop->pass (x 489-1071): noodle + broth fully out, every
+      // station label fully in frame (a half-cut label at the edge reads
+      // as a defect — the old cx=755 left the noodle label's tail showing)
+      RR.cam.scale = 1.5; RR.cam.cx = 780; RR.cam.cy = 300;
+    } else if (n === 3) {
+      // Title opening: big title over the busy stall, 4 tickets up
+      seedTickets(4);
+      G.score = 2140; G.money = 58; G.tips = 12; G.combo = 2; G.comboTimer = 10; G.bestCombo = 2;
+      G.served = 2; G.missed = 0; G.hearts = 3; G.dayTime = 24; G.progress = 0.16;
+      G.goals = { serve8: false, combo5: false, critic: false, nowalk: true };
+      G.plate = ['Noodle', 'Shrimp']; G.plateRecipe = RR.RECIPES[4]; G.plateState = 'assembling'; G.plateTimer = 0;
+      G.hands = ['Mushroom', null];
+      G.chefX = 812; G.chefAction = 'chopping'; G.chefActionT = 0.5; G.chefActionStation = 'plating';
+      G.dialogue = { c: RR.REGULARS[0], line: 'The broth tastes like 1962.' };
+      seedQueue(['Old Sato', 'Ken · Taxi', 'Mika · Nurse']);
+      G.started = false; // title overlay shows; stageShot caller re-shows it
+    } else {
+      // Zoom on the pass: critic served, ORDER UP! banner, big score
+      seedTickets(5);
+      G.orders[0].customer = RR.CRITIC; G.orders[0].recipe = RR.RECIPES[4];
+      G.score = 18240; G.money = 486; G.tips = 132; G.combo = 6; G.comboTimer = 11; G.bestCombo = 6;
+      G.served = 9; G.missed = 0; G.hearts = 3; G.dayTime = 121; G.progress = 0.81;
+      G.goals = { serve8: true, combo5: true, critic: true, nowalk: true };
+      G.criticServed = true; G.criticActive = false; G.criticOffered = true;
+      G.plate = []; G.plateRecipe = null; G.plateState = 'empty'; G.plateTimer = 0;
+      G.hands = [null, null];
+      G.chefX = 950; G.chefAction = null;
+      G.hero = 'ORDER UP! +¥54'; G.heroSub = 'Hana · Critic — COMBO x6'; G.heroT = 99;
+      G.dialogue = { c: RR.CRITIC, line: 'Five stars. I will write about this yatai.' };
+      seedQueue(['Ren · Salaryman', 'Aoi · Student', 'Grandma Yuki']);
+      // window chop->pass (x 499-1081, y 186-484): chop label fully in
+      // (the old cx=820 left it half-cut as "OP BOARD"), stations +
+      // counter + bin tops in frame, so the bottom is busy
+      RR.cam.scale = 1.5; RR.cam.cx = 790; RR.cam.cy = 335;
     }
-    RR.gameApi.updateHUD();
-  }
-
-  function applyShot(n) {
-    const s = SHOTS[n - 1];
-    if (!s || !RR.camera) return;
-    RR.camera.position.set(s.pos[0], s.pos[1], s.pos[2]);
-    RR.cameraTarget.set(s.target[0], s.target[1], s.target[2]);
-    RR.camera.lookAt(RR.cameraTarget);
-    RR.orbit = { yaw: 0, pitch: 0 };
-    RR.shotIndex = n;
   }
 
   window.primeForShot = function (n) {
     window.__gameReady = false;
     try {
       stageShot(n);
-      applyShot(n);
-      // let two frames settle, then signal ready
+      // title screen only on shot 3
+      const G = RR.game;
+      if (n === 3) G.started = false;
       requestAnimationFrame(() => {
         requestAnimationFrame(() => { window.__gameReady = true; });
       });
@@ -149,6 +114,5 @@
     return true;
   };
   window.__gameReady = false;
-  RR.applyShot = applyShot;
   RR.stageShot = stageShot;
 })();
